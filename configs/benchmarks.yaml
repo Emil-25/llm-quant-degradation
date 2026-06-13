@@ -1,0 +1,52 @@
+benchmarks:
+  factual:
+    name: "ARC-Challenge"
+    lm_eval_task: "arc_challenge"
+    metric: "acc_norm"
+    num_fewshot: 25
+    capability: "Factual Knowledge"
+
+  math:
+    name: "GSM8K"
+    lm_eval_task: "gsm8k"
+    metric: "exact_match,flexible-extract"
+    num_fewshot: 8
+    capability: "Math Reasoning"
+    notes: >
+      Use flexible-extract, NOT strict-match. strict-match needs the exact
+      "#### <num>" output format that instruct models do not emit, understating
+      math ability (Qwen2.5-3B-Instruct: 14.6% strict vs 66.3% flexible).
+
+  code:
+    name: "HumanEval"
+    lm_eval_task: "humaneval"
+    metric: "pass@1"
+    num_fewshot: 0
+    capability: "Code Generation"
+    notes: "Requires `human-eval` package. May need separate install."
+
+  commonsense:
+    name: "HellaSwag"
+    lm_eval_task: "hellaswag"
+    metric: "acc_norm"
+    num_fewshot: 10
+    capability: "Commonsense Reasoning"
+
+  instruction:
+    name: "IFEval"
+    lm_eval_task: "ifeval"
+    metric: "prompt_level_strict_acc"
+    num_fewshot: 0
+    capability: "Instruction Following"
+
+  multilingual:
+    name: "MGSM"
+    lm_eval_task: "mgsm_direct"
+    metric: "exact_match"
+    num_fewshot: 8
+    capability: "Multilingual Reasoning"
+    notes: >
+      Standard MGSM covers {bn, de, en, es, fr, ja, ru, sw, te, th, zh}.
+      It does NOT include Azerbaijani or Turkish, so those cannot be used here.
+      We report the standard MGSM language set. Adding a custom translated
+      AZ/TR set would be a separate contribution and is out of scope for this paper.

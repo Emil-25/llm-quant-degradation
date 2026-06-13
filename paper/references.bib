@@ -1,0 +1,131 @@
+% ---------------------------------------------------------------------------
+% VERIFY-BEFORE-SUBMIT: entries marked with a `note = {VERIFY ...}` field are
+% reconstructed from the project brief (CLAUDE.md) and their bibliographic
+% details (authors, venue, year, pages) have NOT been confirmed. Replace them
+% with the canonical citation before submission. The tool/method entries below
+% (lm-eval, GPTQ, AWQ, bitsandbytes, Kendall) are standard and stable.
+% ---------------------------------------------------------------------------
+
+% ---- Related work from the project brief (CONFIRM DETAILS) ----
+
+@misc{unicomp2026,
+  title  = {{UniComp}: A Unified Framework for Comparing Pruning, Quantization, and Distillation},
+  author = {{Author(s) to confirm}},
+  year   = {2026},
+  note   = {VERIFY citation: title/authors/venue reconstructed from project brief.}
+}
+
+@misc{quantreasoning2025,
+  title  = {Quantization Meets Reasoning: Exploring the Effect of Post-Training Quantization on Mathematical Reasoning},
+  author = {{Author(s) to confirm}},
+  year   = {2025},
+  note   = {VERIFY citation: reports up to ~32\% degradation on Llama-3 math under AWQ/GPTQ.}
+}
+
+@inproceedings{marchisio2024multilingual,
+  title     = {How Does Quantization Affect Multilingual {LLM}s?},
+  author    = {Marchisio, Kelly and others},
+  booktitle = {Findings of the Association for Computational Linguistics: EMNLP},
+  year      = {2024},
+  note      = {VERIFY author list and pages. Cohere multilingual quantization study.}
+}
+
+@misc{ijcai25quant,
+  title  = {A Benchmark of Quantized {LLM}s across Capabilities},
+  author = {{Author(s) to confirm}},
+  year   = {2025},
+  note   = {VERIFY citation: IJCAI-25 quantization benchmark; coding/STEM degrade most on MT-Bench.}
+}
+
+@misc{signaldegradation2026,
+  title  = {From Signal Degradation to Computation Collapse: A Mechanistic Account of Low-Bit Quantization Failure},
+  author = {{Author(s) to confirm}},
+  year   = {2026},
+  note   = {VERIFY citation: mechanistic analysis of 2-bit failure modes.}
+}
+
+% ---- Tools and methods (standard) ----
+
+@software{lmeval,
+  title   = {A Framework for Few-Shot Language Model Evaluation},
+  author  = {Gao, Leo and Tow, Jonathan and Biderman, Stella and others},
+  year    = {2024},
+  publisher = {Zenodo},
+  url     = {https://github.com/EleutherAI/lm-evaluation-harness},
+  note    = {EleutherAI lm-evaluation-harness; cite the version/commit used.}
+}
+
+@inproceedings{frantar2023gptq,
+  title     = {{GPTQ}: Accurate Post-Training Quantization for Generative Pre-trained Transformers},
+  author    = {Frantar, Elias and Ashkboos, Saleh and Hoefler, Torsten and Alistarh, Dan},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2023}
+}
+
+@inproceedings{lin2024awq,
+  title     = {{AWQ}: Activation-aware Weight Quantization for {LLM} Compression and Acceleration},
+  author    = {Lin, Ji and Tang, Jiaming and Tang, Haotian and Yang, Shang and Dang, Xingyu and Han, Song},
+  booktitle = {Proceedings of Machine Learning and Systems (MLSys)},
+  year      = {2024}
+}
+
+@article{dettmers2022llmint8,
+  title   = {{LLM.int8()}: 8-bit Matrix Multiplication for Transformers at Scale},
+  author  = {Dettmers, Tim and Lewis, Mike and Belkada, Younes and Zettlemoyer, Luke},
+  journal = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year    = {2022}
+}
+
+@article{kendall1938tau,
+  title   = {A New Measure of Rank Correlation},
+  author  = {Kendall, M. G.},
+  journal = {Biometrika},
+  volume  = {30},
+  number  = {1/2},
+  pages   = {81--93},
+  year    = {1938}
+}
+
+% ---- Benchmarks (confirm canonical citations as needed) ----
+
+@article{cobbe2021gsm8k,
+  title   = {Training Verifiers to Solve Math Word Problems},
+  author  = {Cobbe, Karl and others},
+  journal = {arXiv preprint arXiv:2110.14168},
+  year    = {2021}
+}
+
+@inproceedings{clark2018arc,
+  title     = {Think you have Solved Question Answering? Try {ARC}, the {AI2} Reasoning Challenge},
+  author    = {Clark, Peter and others},
+  booktitle = {arXiv preprint arXiv:1803.05457},
+  year      = {2018}
+}
+
+@inproceedings{zellers2019hellaswag,
+  title     = {{HellaSwag}: Can a Machine Really Finish Your Sentence?},
+  author    = {Zellers, Rowan and others},
+  booktitle = {Proceedings of ACL},
+  year      = {2019}
+}
+
+@article{chen2021humaneval,
+  title   = {Evaluating Large Language Models Trained on Code},
+  author  = {Chen, Mark and others},
+  journal = {arXiv preprint arXiv:2107.03374},
+  year    = {2021}
+}
+
+@article{zhou2023ifeval,
+  title   = {Instruction-Following Evaluation for Large Language Models},
+  author  = {Zhou, Jeffrey and others},
+  journal = {arXiv preprint arXiv:2311.07911},
+  year    = {2023}
+}
+
+@article{shi2022mgsm,
+  title   = {Language Models are Multilingual Chain-of-Thought Reasoners},
+  author  = {Shi, Freda and others},
+  journal = {arXiv preprint arXiv:2210.03057},
+  year    = {2022}
+}

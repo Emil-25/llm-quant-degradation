@@ -1,0 +1,2 @@
+model,precision,gsm8k,arc_challenge,hellaswag,humaneval,ifeval,mgsm
+qwen2.5-3b-instruct,int4_bnb,2.97,3.25,,,,

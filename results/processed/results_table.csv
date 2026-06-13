@@ -1,0 +1,6 @@
+model,precision,gsm8k,arc_challenge,hellaswag,humaneval,ifeval,mgsm
+qwen2.5-1.5b-instruct,fp16,,54.35,67.9,,,
+qwen2.5-3b-instruct,fp16,,60.67,,,,
+qwen2.5-3b-instruct,int4_bnb,,58.7,,,,
+smollm2-1.7b-instruct,fp16,49.05,53.24,72.52,,47.87,3.89
+smollm2-1.7b-instruct,int4_bnb,40.18,51.71,70.78,,47.69,3.24

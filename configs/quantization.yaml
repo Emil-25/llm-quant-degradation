@@ -1,0 +1,45 @@
+precisions:
+  fp16:
+    label: "FP16"
+    method: "none"
+    bits: 16
+    notes: "Baseline. Load with torch_dtype=torch.float16"
+
+  int8:
+    label: "INT8"
+    method: "bitsandbytes"
+    bits: 8
+    load_args:
+      load_in_8bit: true
+    notes: "Via bitsandbytes. Simple to use, good baseline compression."
+
+  int4_gptq:
+    label: "INT4-GPTQ"
+    method: "gptq"
+    bits: 4
+    gptq_args:
+      bits: 4
+      group_size: 128
+      desc_act: false
+      dataset: "c4"
+      damp_percent: 0.1
+    notes: "Primary INT4 method. Use AutoGPTQ or pre-quantized models from HF."
+
+  int4_awq:
+    label: "INT4-AWQ"
+    method: "awq"
+    bits: 4
+    awq_args:
+      w_bit: 4
+      q_group_size: 128
+      version: "gemm"
+    notes: "Secondary INT4 method for robustness check. Use AutoAWQ."
+
+# Strategy:
+# - For Phase 1-2: Use FP16 + INT4-GPTQ only (simplest comparison)
+# - For Phase 3: Add INT8 + INT4-AWQ
+# - Many models have pre-quantized GPTQ versions on HuggingFace
+#   (e.g., TheBloke repos). Use those to save quantization time.
+#
+# Pre-quantized model search pattern:
+#   https://huggingface.co/models?search=<model-name>+gptq

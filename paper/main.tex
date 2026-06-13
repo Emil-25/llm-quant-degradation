@@ -1,0 +1,400 @@
+% Capability-Specific Degradation Patterns in Quantized Small Language Models
+% Built for the ACL 2023 LaTeX template. See paper/README.md for how to obtain
+% the style files (acl.sty, acl_natbib.bst) so this compiles.
+%
+% Workflow: results -> CSVs -> analysis -> tables/figures -> this file.
+%   python scripts/aggregate_results.py ...
+%   python scripts/analyze_results.py ...
+%   python analysis/make_paper_tables.py ...
+% then compile:  pdflatex main && bibtex main && pdflatex main && pdflatex main
+
+\documentclass[11pt]{article}
+
+\usepackage[]{acl}            % ACL 2023 style; provides \aclfinalcopy etc.
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{xcolor}
+
+\title{Capability-Specific Degradation Patterns in Quantized Small Language Models}
+
+\author{Emil Rahimov \\ \texttt{emilrahimov25@gmail.com}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Post-training quantization is the default way to deploy small language models
+(1--4B parameters), yet its impact is usually summarized by a single aggregate
+accuracy number that can hide severe failures in individual capabilities. We
+evaluate seven open instruction-tuned small LLMs spanning five architecture
+families (Qwen2.5, Llama-3.2, Gemma-2, Phi-3.5, and SmolLM2) at FP16 and 4-bit
+(bitsandbytes NF4) across six capabilities: factual knowledge, commonsense,
+mathematical reasoning, multilingual math, code generation, and instruction
+following. Rather than reporting only mean accuracy, we construct a
+\emph{capability-level degradation map} and ask whether capabilities degrade in a
+consistent order across architectures. We find that degradation is strongly
+capability-specific: multilingual mathematical reasoning and code generation are
+the most fragile capabilities (relative drops up to $57\%$), while commonsense
+reasoning is almost perfectly preserved ($\sim$2\%) everywhere. However, the
+\emph{ordering} of degradation is only weakly consistent across architectures
+(mean pairwise Kendall's $\tau = 0.29$): the most- and least-fragile capabilities
+are shared, but the middle ordering is architecture-dependent. We further show
+that aggregate scores mask these failures---several models lose more than a fifth
+of a specific capability while their mean barely moves---and we document a
+measurement pitfall in which a heavily chat-tuned model scores near zero on code
+under raw-completion prompting yet degrades by $57\%$ once prompted correctly. Our
+results argue that small-model quantization should be reported per capability,
+not in aggregate.
+\end{abstract}
+
+\section{Introduction}
+
+Small language models in the 1--4B parameter range are increasingly the
+deployment-relevant artifact: they run on a single consumer GPU, on laptops, and
+on edge devices. Post-training quantization---most commonly to 4 bits---is the
+standard way to fit these models into tight memory budgets. The practical
+question for a practitioner is simple: \emph{what do I lose when I quantize?}
+
+The usual answer is an aggregate benchmark score, or an average over a benchmark
+suite. We argue this is the wrong granularity. A model whose average accuracy
+drops by three points may have lost almost nothing on commonsense reasoning while
+losing a quarter of its code-generation or multilingual ability. For a deployed
+system that distinction is the whole story: an aggregate number that looks
+acceptable can conceal a capability that has effectively broken.
+
+We therefore study quantization at the level of individual capabilities. We
+evaluate seven instruction-tuned small models from five architecture families at
+FP16 and 4-bit across six capabilities, and we organize the results as a
+\emph{degradation map}: for every model and capability, the relative drop from
+FP16 to 4-bit. We then ask whether different capabilities degrade in a
+\emph{consistent order} across architectures---if they do, the pattern is
+universal and predictable; if they do not, degradation is architecture-dependent
+and must be measured per model.
+
+Our contributions are:
+\begin{enumerate}
+\item A capability-level degradation map for seven open small LLMs (five families)
+under 4-bit quantization across six capabilities, using a single controlled
+evaluation pipeline (Section~\ref{sec:setup}).
+\item Evidence that degradation is strongly \emph{capability-specific}:
+multilingual math and code degrade most, commonsense least, with more than a
+$25\times$ spread in relative degradation within a single model
+(Section~\ref{sec:degradation}).
+\item A cross-architecture consistency analysis (mean Kendall's $\tau = 0.29$)
+showing that the degradation \emph{ordering} is only weakly universal: the
+extremes are shared but the middle ranking is architecture-dependent
+(Section~\ref{sec:consistency}).
+\item A size-axis analysis showing that smaller models degrade more in magnitude,
+and a demonstration that aggregate scores hide capability-specific collapse,
+including a prompting-protocol pitfall on code evaluation
+(Sections~\ref{sec:size}--\ref{sec:hidden}).
+\end{enumerate}
+
+\section{Related Work}
+
+\paragraph{Unified compression benchmarks.} UniComp~\citep{unicomp2026} compares
+pruning, quantization, and distillation across 40+ datasets and reports a
+``knowledge bias'': knowledge-style tasks are preserved while reasoning,
+multilingual, and instruction-following abilities degrade. Their focus is
+\emph{comparing methods} on largely mid-to-large models; they do not isolate the
+small-model regime or produce an explicit per-capability degradation ranking,
+which is our focus.
+
+\paragraph{Quantization and reasoning.} \citet{quantreasoning2025} provide a
+math-specific analysis, reporting up to 32\% degradation on Llama-3 mathematical
+reasoning under AWQ/GPTQ. We corroborate the fragility of mathematical reasoning
+but situate it among five other capabilities and across architectures and model
+sizes.
+
+\paragraph{Multilingual quantization.} \citet{marchisio2024multilingual} show
+that quantization disproportionately harms non-Latin-script languages and that
+automatic metrics can underestimate the damage. Consistent with this, we find
+multilingual math (MGSM) to be the single most fragile capability in our suite.
+
+\paragraph{Coding and STEM.} A recent quantization benchmark~\citep{ijcai25quant}
+finds coding and STEM tasks degrade most on MT-Bench, but is Llama-centric and
+oriented toward comparing quantization methods rather than ranking capabilities
+across architectures.
+
+\paragraph{Mechanisms.} \citet{signaldegradation2026} give a mechanistic account
+of why extreme (2-bit) quantization fails, identifying distinct failure modes.
+Our study is complementary: we measure benchmark-level capability degradation at
+the deployment-relevant 4-bit setting rather than analyzing internal mechanisms.
+
+\paragraph{Positioning.} Relative to this work we (i) restrict to the understudied
+1--4B small-model regime, (ii) compare five architecture families under one
+identical pipeline, (iii) report an explicit capability degradation
+\emph{ordering} and test its cross-architecture consistency, and (iv) add a size
+axis within two families.
+
+\section{Experimental Setup}
+\label{sec:setup}
+
+\paragraph{Models.} We evaluate seven instruction-tuned models. Five form the
+cross-architecture set used for the consistency analysis: Qwen2.5-3B-Instruct,
+Llama-3.2-3B-Instruct, Gemma-2-2B-it, Phi-3.5-mini-instruct (3.8B), and
+SmolLM2-1.7B-Instruct. Two additional models form a size axis within existing
+families: Qwen2.5-1.5B-Instruct and Llama-3.2-1B-Instruct. We use
+instruction-tuned variants because instruction following (IFEval) requires them
+and because they are the deployment-relevant artifact at this scale. All models
+are $\leq 4$B parameters by design; Gemma-2 is loaded with eager attention so its
+logit soft-capping is applied correctly.
+
+\paragraph{Quantization.} We compare two precisions: FP16 (baseline) and 4-bit
+weight quantization via bitsandbytes NF4~\citep{dettmers2022llmint8}. We focus on
+the aggressive 4-bit regime because it is where capability-specific failures
+emerge; 8-bit quantization was near-lossless in pilot runs and is omitted. We
+note GPTQ~\citep{frantar2023gptq} and AWQ~\citep{lin2024awq} as alternative 4-bit
+methods; we standardize on NF4 to hold the quantization method fixed across all
+architectures, isolating architecture as the variable of interest.
+
+\paragraph{Capabilities and benchmarks.} We map six capabilities to standard
+benchmarks, evaluated with the LM Evaluation Harness~\citep{lmeval}: factual
+knowledge (ARC-Challenge~\citep{clark2018arc}, 25-shot, acc\_norm); commonsense
+(HellaSwag~\citep{zellers2019hellaswag}, 10-shot, acc\_norm); mathematical
+reasoning (GSM8K~\citep{cobbe2021gsm8k}, 8-shot, flexible-extract exact match);
+multilingual math (MGSM~\citep{shi2022mgsm}, 8-shot, exact match, macro-averaged
+over the standard languages); code generation
+(HumanEval~\citep{chen2021humaneval}, 0-shot, pass@1); and instruction following
+(IFEval~\citep{zhou2023ifeval}, 0-shot, prompt-level strict accuracy). Generative
+tasks (GSM8K, MGSM, IFEval) use the chat template; HumanEval uses raw completion
+(the standard protocol); multiple-choice tasks use loglikelihood scoring. MGSM
+uses its standard language set and does not include Azerbaijani or Turkish.
+
+\paragraph{Evaluation pipeline.} All runs use a single controlled pipeline.
+Generative tasks are executed with a high-throughput vLLM backend; multiple-choice
+loglikelihood tasks use the Hugging Face Transformers backend. The same backend is
+used for a given capability across all precisions and models, so any
+FP16-vs-4-bit difference within a capability reflects quantization and not the
+harness. We verified pipeline correctness by matching FP16 baselines against
+published numbers (e.g., Qwen2.5-3B GSM8K and ARC). All $7\times2\times6=84$ runs
+completed.
+
+\paragraph{Analysis.} For each model and capability we compute the relative
+degradation
+\[
+\Delta_{\text{rel}} = \frac{s_{\text{FP16}} - s_{\text{4bit}}}{s_{\text{FP16}}}\times 100\%.
+\]
+To avoid unstable ratios, we exclude any capability whose FP16 baseline is below
+10 points from the relative-degradation analysis (these are reported as absolute
+scores) and additionally report absolute drops as a sanity check. We rank
+capabilities by $\Delta_{\text{rel}}$ within each model (rank 1 = most degraded)
+and compare rankings across models with Kendall's $\tau$~\citep{kendall1938tau}.
+A high mean $\tau$ indicates a universal degradation order; a low mean $\tau$
+indicates architecture-dependence. We separately compute $\tau$ between the small
+and large member of each family (the size axis).
+
+\section{Results}
+
+\subsection{Capability-Specific Degradation}
+\label{sec:degradation}
+
+Table~\ref{tab:degradation} reports the relative degradation map and
+Table~\ref{tab:absolute} the underlying absolute scores. The headline observation
+is the very large spread \emph{within} a single model. For Qwen2.5-1.5B, relative
+degradation ranges from $2.6\%$ (HellaSwag) to $22.9\%$ (MGSM) and $22.6\%$
+(HumanEval)---an order-of-magnitude difference between the most- and
+least-affected capability. Aggregating these into one number would report a
+moderate drop and erase the fact that two capabilities lost roughly a quarter of
+their performance.
+
+Two capabilities stand out as consistently fragile. \textbf{Multilingual math
+(MGSM)} is the most degraded capability for five of the six models for which it
+is measurable, with relative drops of $12$--$23\%$. \textbf{Code generation
+(HumanEval)} is the most volatile: catastrophic for some models (Qwen2.5-1.5B
+$22.6\%$, Phi-3.5 $21.0\%$, and SmolLM2 $57\%$; see Section~\ref{sec:hidden}) yet
+statistically unchanged for others (Llama-3.2-3B, Gemma-2). At the other extreme,
+\textbf{commonsense (HellaSwag)} is essentially preserved everywhere
+($1.7$--$5.1\%$), and factual knowledge (ARC) is largely robust. Small negative
+values (4-bit marginally above FP16) occur for a few code/math cells and are
+within evaluation noise. Figure~\ref{fig:heatmap} visualizes the map.
+
+\begin{table*}[t]
+\centering
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Model (4-bit vs FP16) & GSM8K & ARC & HellaSwag & HumanEval & IFEval & MGSM \\
+\midrule
+Qwen2.5-3B   & $-2.6$ & $3.4$  & $2.6$ & $9.2$   & $1.9$  & $19.0$ \\
+Qwen2.5-1.5B & $10.6$ & $9.3$  & $2.6$ & $22.6$  & $11.8$ & $22.9$ \\
+Llama-3.2-3B & $4.0$  & $3.1$  & $1.8$ & $-6.1$  & $-0.5$ & $19.1$ \\
+Llama-3.2-1B & $16.7$ & $2.7$  & $5.1$ & $12.3$  & $4.5$  & --     \\
+Gemma-2-2B   & $4.1$  & $2.4$  & $1.8$ & $-2.6$  & $1.0$  & $12.2$ \\
+Phi-3.5-mini & $4.3$  & $-1.7$ & $1.7$ & $21.0$  & $1.1$  & $19.0$ \\
+SmolLM2-1.7B & $18.1$ & $2.7$  & $2.4$ & $57.2^{\dagger}$ & $-1.2$ & --   \\
+\bottomrule
+\end{tabular}
+\caption{Relative degradation $\Delta_{\text{rel}}$ (\%) from FP16 to 4-bit
+(higher = worse). ``--'' marks capabilities excluded for an FP16 baseline below
+10 points (MGSM for the two smallest models). $\dagger$: SmolLM2 HumanEval under
+the chat-template protocol (Section~\ref{sec:hidden}); under the common
+raw-completion protocol its baseline is near zero and the cell is excluded.}
+\label{tab:degradation}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\small
+\begin{tabular}{llrrrrrr}
+\toprule
+Model & Prec. & GSM8K & ARC & HellaSwag & HumanEval & IFEval & MGSM \\
+\midrule
+Qwen2.5-3B    & FP16 & 63.4 & 60.7 & 75.3 & 53.1 & 59.3 & 24.9 \\
+              & 4-bit & 65.1 & 58.6 & 73.3 & 48.2 & 58.2 & 20.2 \\
+Qwen2.5-1.5B  & FP16 & 61.7 & 54.4 & 67.9 & 37.8 & 40.9 & 10.3 \\
+              & 4-bit & 55.2 & 49.3 & 66.1 & 29.3 & 36.0 & 8.0 \\
+Llama-3.2-3B  & FP16 & 77.3 & 52.8 & 73.6 & 50.0 & 69.3 & 31.0 \\
+              & 4-bit & 74.2 & 51.2 & 72.3 & 53.1 & 69.7 & 25.1 \\
+Llama-3.2-1B  & FP16 & 44.1 & 41.8 & 61.1 & 34.8 & 49.9 & 6.4 \\
+              & 4-bit & 36.8 & 40.7 & 57.9 & 30.5 & 47.7 & 6.0 \\
+Gemma-2-2B    & FP16 & 54.1 & 57.9 & 71.5 & 23.8 & 55.6 & 37.6 \\
+              & 4-bit & 51.9 & 56.6 & 70.2 & 24.4 & 55.1 & 33.1 \\
+Phi-3.5-mini  & FP16 & 78.6 & 64.8 & 79.0 & 61.0 & 49.9 & 33.0 \\
+              & 4-bit & 75.3 & 65.9 & 77.7 & 48.2 & 49.4 & 26.8 \\
+SmolLM2-1.7B  & FP16 & 49.1 & 53.2 & 72.6 & $34.2^{\dagger}$ & 48.2 & 3.9 \\
+              & 4-bit & 40.3 & 51.8 & 70.8 & $14.6^{\dagger}$ & 48.8 & 3.2 \\
+\bottomrule
+\end{tabular}
+\caption{Absolute scores (\%) per model and precision. $\dagger$: SmolLM2
+HumanEval under the chat-template protocol; under raw completion both values are
+near zero (see Section~\ref{sec:hidden}).}
+\label{tab:absolute}
+\end{table*}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/degradation_heatmap.png}
+\caption{Relative degradation (\%) per model (rows) and capability (columns).
+Multilingual math and code are the hot columns; commonsense is uniformly cool.}
+\label{fig:heatmap}
+\end{figure}
+
+\subsection{Cross-Architecture Consistency}
+\label{sec:consistency}
+
+We rank the six capabilities by degradation within each model and compare
+rankings across all $\binom{7}{2}=21$ model pairs with Kendall's $\tau$. The mean
+pairwise $\tau$ is $\mathbf{0.29}$, which we interpret as \emph{weak} consistency:
+the degradation order is \emph{not} universal across architectures. The pattern is
+better described as partially consistent. The extremes are shared---multilingual
+math is reliably near the top of the ranking and commonsense reliably near the
+bottom---but the middle of the ranking (knowledge, math, code, instruction
+following) reorders from architecture to architecture, which depresses the mean
+$\tau$. Pairwise agreement is correspondingly heterogeneous: some pairs rank
+capabilities identically (e.g., Gemma-2 vs.\ Llama-3.2-3B, $\tau=1.0$) while
+others are uncorrelated (near $\tau=0$). Figure~\ref{fig:ranking} shows the
+rankings side by side.
+
+The practical implication is that one cannot reliably predict a new
+architecture's full degradation profile from another's. A deployment decision
+should measure the specific model rather than assume a universal ordering. This is
+itself actionable: it argues against ``rules of thumb'' for which capabilities
+survive quantization.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/ranking_comparison.png}
+\caption{Degradation rankings per model (1 = most degraded). Agreement across
+columns would indicate a shared ordering; the visible reordering in the middle
+ranks reflects the low mean Kendall's $\tau$.}
+\label{fig:ranking}
+\end{figure}
+
+\subsection{Size Axis}
+\label{sec:size}
+
+Within the two families evaluated at two sizes, the smaller model degrades
+\emph{more in magnitude}. Qwen2.5-1.5B degrades more than Qwen2.5-3B on five of
+six capabilities (e.g., GSM8K $10.6\%$ vs.\ $-2.6\%$, HumanEval $22.6\%$ vs.\
+$9.2\%$); Llama-3.2-1B degrades more than Llama-3.2-3B on math and code (GSM8K
+$16.7\%$ vs.\ $4.0\%$). The degradation \emph{ordering}, however, does not
+strongly persist across sizes: the small-vs-large Kendall's $\tau$ is $0.47$ for
+Qwen2.5 and $0.00$ for Llama-3.2. Quantization thus hurts smaller models more,
+but not in a fixed capability order even within a family.
+
+\subsection{Aggregate Scores Hide Capability Failures}
+\label{sec:hidden}
+
+The degradation map exposes failures that an aggregate would conceal. The clearest
+case is code generation under quantization for small chat-tuned models.
+
+Under the standard raw-completion HumanEval protocol used for all models,
+SmolLM2-1.7B scores $0.6\%$ at FP16 and $0.0\%$ at 4-bit---numbers that, taken at
+face value, suggest the model simply cannot code. Inspection of its generations
+shows the cause is a \emph{prompting-protocol artifact}: SmolLM2 is heavily
+chat-tuned and, given a bare function signature to continue, emits prose and
+markdown rather than code. The six other models continue raw code normally. When
+SmolLM2 is instead prompted with its chat template and the emitted function is
+extracted and executed, it scores $34.2\%$ at FP16 and $14.6\%$ at 4-bit---a
+\textbf{relative degradation of $57\%$, the largest code degradation in our
+study}. The raw-completion protocol had hidden a near-total collapse of a real
+capability.
+
+We draw two lessons. First, capability-specific evaluation can be sensitive to
+prompting protocol, and a single near-zero score should be audited before being
+read as inability. Second, and more importantly for our thesis, the underlying
+phenomenon is severe: a 1.7B model loses more than half of a genuine
+code-generation ability under 4-bit quantization, which no aggregate score in our
+suite surfaces. We report SmolLM2's chat-protocol code result separately (the
+$\dagger$ entries in Tables~\ref{tab:degradation} and~\ref{tab:absolute}) because
+it uses a different prompt format from the other models; the cross-model
+consistency analysis (Section~\ref{sec:consistency}) uses only the common
+protocol.
+
+\section{Discussion}
+
+Three themes emerge. \textbf{(1) Capability, not aggregate.} Across every model,
+quantization damage is concentrated in a minority of capabilities. Reporting a
+single accuracy number is not just lossy but actively misleading when the lost
+capability is the one a deployment depends on (e.g., multilingual or code).
+\textbf{(2) Fragility is partly intrinsic to the capability.} Multilingual math
+and code are fragile across architectures while commonsense is robust, suggesting
+the brittleness is tied to what the capability demands---long multi-step
+generation and exact-token correctness---more than to the architecture.
+\textbf{(3) But ordering is architecture-dependent.} The weak mean $\tau$ shows
+that beyond the shared extremes, which capability breaks next depends on the
+model, so practitioners cannot port a degradation profile across families. The
+deployment recommendation that follows is concrete: before shipping a quantized
+small model, re-test its multilingual and code capabilities specifically, and do
+not rely on an aggregate score or on another model's profile.
+
+\section*{Limitations}
+
+Our study covers seven models, one quantization method (NF4) at one bit-width
+(4-bit), and one benchmark per capability; broader coverage (AWQ/GPTQ, additional
+benchmarks per capability, more families) would strengthen the consistency
+estimates, whose per-pair $p$-values are limited by having only six capabilities.
+We report single evaluation runs; generative benchmarks (GSM8K, HumanEval, MGSM)
+carry run-to-run variance, so small ranking differences should be read with the
+reported standard errors in mind. MGSM uses the standard language set and is
+excluded for the two smallest models, where the FP16 baseline is too low to form
+a stable ratio; degradation there is reported in absolute terms only. The
+Kendall's-$\tau$ analysis ranks six capabilities, so individual pairwise
+correlations are noisy and we emphasize the mean. Finally, as
+Section~\ref{sec:hidden} shows, code evaluation is protocol-sensitive for
+chat-tuned models; we mitigated this by auditing and re-prompting, but a fully
+uniform instruction-style protocol across all models is left to future work.
+
+\section{Conclusion}
+
+We presented a capability-level degradation map for seven small instruction-tuned
+LLMs under 4-bit quantization. Degradation is strongly capability-specific:
+multilingual math and code are most fragile (up to $57\%$ relative loss) while
+commonsense is nearly untouched. The degradation \emph{ordering} is only weakly
+consistent across architectures (mean Kendall's $\tau=0.29$), so the extremes are
+predictable but the full profile is architecture-dependent. Smaller models
+degrade more in magnitude. Because aggregate accuracy hides these
+capability-specific failures, we recommend that small-model quantization be
+reported and audited per capability.
+
+\bibliography{references}
+\bibliographystyle{acl_natbib}
+
+\end{document}

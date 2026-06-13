@@ -1,0 +1,100 @@
+\begin{thebibliography}{16}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{{Author(s) to confirm}(2025{\natexlab{a}})}]{ijcai25quant}
+{Author(s) to confirm}. 2025{\natexlab{a}}.
+\newblock A benchmark of quantized {LLM}s across capabilities.
+\newblock VERIFY citation: IJCAI-25 quantization benchmark; coding/STEM degrade
+  most on MT-Bench.
+
+\bibitem[{{Author(s) to confirm}(2025{\natexlab{b}})}]{quantreasoning2025}
+{Author(s) to confirm}. 2025{\natexlab{b}}.
+\newblock Quantization meets reasoning: Exploring the effect of post-training
+  quantization on mathematical reasoning.
+\newblock VERIFY citation: reports up to ~32\% degradation on Llama-3 math
+  under AWQ/GPTQ.
+
+\bibitem[{{Author(s) to confirm}(2026{\natexlab{a}})}]{signaldegradation2026}
+{Author(s) to confirm}. 2026{\natexlab{a}}.
+\newblock From signal degradation to computation collapse: A mechanistic
+  account of low-bit quantization failure.
+\newblock VERIFY citation: mechanistic analysis of 2-bit failure modes.
+
+\bibitem[{{Author(s) to confirm}(2026{\natexlab{b}})}]{unicomp2026}
+{Author(s) to confirm}. 2026{\natexlab{b}}.
+\newblock {UniComp}: A unified framework for comparing pruning, quantization,
+  and distillation.
+\newblock VERIFY citation: title/authors/venue reconstructed from project
+  brief.
+
+\bibitem[{Chen et~al.(2021)}]{chen2021humaneval}
+Mark Chen and 1 others. 2021.
+\newblock Evaluating large language models trained on code.
+\newblock \emph{arXiv preprint arXiv:2107.03374}.
+
+\bibitem[{Clark et~al.(2018)}]{clark2018arc}
+Peter Clark and 1 others. 2018.
+\newblock Think you have solved question answering? try {ARC}, the {AI2}
+  reasoning challenge.
+\newblock In \emph{arXiv preprint arXiv:1803.05457}.
+
+\bibitem[{Cobbe et~al.(2021)}]{cobbe2021gsm8k}
+Karl Cobbe and 1 others. 2021.
+\newblock Training verifiers to solve math word problems.
+\newblock \emph{arXiv preprint arXiv:2110.14168}.
+
+\bibitem[{Dettmers et~al.(2022)Dettmers, Lewis, Belkada, and
+  Zettlemoyer}]{dettmers2022llmint8}
+Tim Dettmers, Mike Lewis, Younes Belkada, and Luke Zettlemoyer. 2022.
+\newblock {LLM.int8()}: 8-bit matrix multiplication for transformers at scale.
+\newblock \emph{Advances in Neural Information Processing Systems (NeurIPS)}.
+
+\bibitem[{Frantar et~al.(2023)Frantar, Ashkboos, Hoefler, and
+  Alistarh}]{frantar2023gptq}
+Elias Frantar, Saleh Ashkboos, Torsten Hoefler, and Dan Alistarh. 2023.
+\newblock {GPTQ}: Accurate post-training quantization for generative
+  pre-trained transformers.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}.
+
+\bibitem[{Gao et~al.(2024)Gao, Tow, Biderman et~al.}]{lmeval}
+Leo Gao, Jonathan Tow, Stella Biderman, and 1 others. 2024.
+\newblock \href {https://github.com/EleutherAI/lm-evaluation-harness} {A
+  framework for few-shot language model evaluation}.
+\newblock EleutherAI lm-evaluation-harness; cite the version/commit used.
+
+\bibitem[{Kendall(1938)}]{kendall1938tau}
+M.~G. Kendall. 1938.
+\newblock A new measure of rank correlation.
+\newblock \emph{Biometrika}, 30(1/2):81--93.
+
+\bibitem[{Lin et~al.(2024)Lin, Tang, Tang, Yang, Dang, and Han}]{lin2024awq}
+Ji~Lin, Jiaming Tang, Haotian Tang, Shang Yang, Xingyu Dang, and Song Han.
+  2024.
+\newblock {AWQ}: Activation-aware weight quantization for {LLM} compression and
+  acceleration.
+\newblock In \emph{Proceedings of Machine Learning and Systems (MLSys)}.
+
+\bibitem[{Marchisio et~al.(2024)}]{marchisio2024multilingual}
+Kelly Marchisio and 1 others. 2024.
+\newblock How does quantization affect multilingual {LLM}s?
+\newblock In \emph{Findings of the Association for Computational Linguistics:
+  EMNLP}.
+\newblock VERIFY author list and pages. Cohere multilingual quantization study.
+
+\bibitem[{Shi et~al.(2022)}]{shi2022mgsm}
+Freda Shi and 1 others. 2022.
+\newblock Language models are multilingual chain-of-thought reasoners.
+\newblock \emph{arXiv preprint arXiv:2210.03057}.
+
+\bibitem[{Zellers et~al.(2019)}]{zellers2019hellaswag}
+Rowan Zellers and 1 others. 2019.
+\newblock {HellaSwag}: Can a machine really finish your sentence?
+\newblock In \emph{Proceedings of ACL}.
+
+\bibitem[{Zhou et~al.(2023)}]{zhou2023ifeval}
+Jeffrey Zhou and 1 others. 2023.
+\newblock Instruction-following evaluation for large language models.
+\newblock \emph{arXiv preprint arXiv:2311.07911}.
+
+\end{thebibliography}

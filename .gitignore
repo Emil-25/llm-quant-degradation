@@ -1,0 +1,53 @@
+__pycache__/
+*.pyc
+.env
+*.egg-info/
+dist/
+build/
+.ipynb_checkpoints/
+results/raw/*.json
+results/raw/*.meta.json
+*.pt
+*.safetensors
+*.bin
+.DS_Store
+wandb/
+
+# virtual envs (large, machine-specific)
+.venv*/
+venv/
+
+# downloaded / regenerable results (raw data lives in the HF dataset)
+results/raw_cloud/
+results/processed_cloud/
+results/quantized/
+
+# temp / scratch files
+*.log
+err.log
+wsl_he.log
+ti.sh
+tectonic
+
+# latex build artifacts (keep main.pdf and main.bbl; drop the rest)
+paper/main.aux
+paper/main.blg
+paper/*.out
+
+LINKEDIN_POST.md
+
+# internal AI-agent / tooling files (not for the public repo)
+CLAUDE.md
+CLAUDE_CODE_PROMPT.md
+.claude/
+
+# build artifact (regenerable from paper/ sources)
+paper/arxiv_submission.tar.gz
+
+# internal planning spreadsheet
+research_plan_llm_quantization.xlsx
+
+# local lm-eval raw outputs incl. huge sample logs (real data is in the HF dataset)
+results/raw/
+**/samples_*.jsonl
+*.jsonl

@@ -1,0 +1,15 @@
+model,precision,benchmark,column,score,stderr,source_file
+qwen2.5-1.5b-instruct,fp16,arc_challenge,arc_challenge,54.35,1.46,results_2026-06-07T08-24-46.541806.json
+qwen2.5-1.5b-instruct,fp16,hellaswag,hellaswag,67.9,0.47,results_2026-06-07T09-50-29.037914.json
+qwen2.5-3b-instruct,fp16,arc_challenge,arc_challenge,60.67,1.43,results_2026-06-04T11-43-04.227967.json
+qwen2.5-3b-instruct,int4_bnb,arc_challenge,arc_challenge,58.7,1.44,results_2026-06-04T12-04-41.007686.json
+smollm2-1.7b-instruct,fp16,arc_challenge,arc_challenge,53.24,1.46,results_2026-06-06T14-48-11.830835.json
+smollm2-1.7b-instruct,fp16,gsm8k,gsm8k,49.05,1.38,results_2026-06-07T01-03-16.037694.json
+smollm2-1.7b-instruct,fp16,hellaswag,hellaswag,72.52,0.45,results_2026-06-06T16-25-54.453288.json
+smollm2-1.7b-instruct,fp16,ifeval,ifeval,47.87,2.15,results_2026-06-06T18-11-14.895881.json
+smollm2-1.7b-instruct,fp16,mgsm_direct,mgsm,3.89,,results_2026-06-07T01-24-53.508837.json
+smollm2-1.7b-instruct,int4_bnb,arc_challenge,arc_challenge,51.71,1.46,results_2026-06-06T18-53-03.650684.json
+smollm2-1.7b-instruct,int4_bnb,gsm8k,gsm8k,40.18,1.35,results_2026-06-07T02-11-53.872951.json
+smollm2-1.7b-instruct,int4_bnb,hellaswag,hellaswag,70.78,0.45,results_2026-06-06T20-34-54.382965.json
+smollm2-1.7b-instruct,int4_bnb,ifeval,ifeval,47.69,2.15,results_2026-06-07T03-20-25.935256.json
+smollm2-1.7b-instruct,int4_bnb,mgsm_direct,mgsm,3.24,,results_2026-06-07T08-08-37.419192.json

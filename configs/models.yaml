@@ -1,0 +1,70 @@
+# Small instruction-tuned models (<=4B). Two groups:
+#   cross_architecture: different families, used for the Kendall's-tau consistency
+#                       analysis (more families => stronger cross-architecture claim).
+#   size_axis:          same family at two sizes, to test whether the degradation
+#                       ORDER shifts as models shrink (a secondary contribution).
+# Instruct variants only: IFEval is meaningless on base models, and instruct models
+# are the deployed artifact at this scale.
+
+models:
+  # ---- cross-architecture set ----
+  qwen2.5-3b-instruct:
+    hf_path: "Qwen/Qwen2.5-3B-Instruct"
+    short_name: "qwen2.5-3b-instruct"
+    params_b: 3.1
+    group: cross_architecture
+    requires_token: false
+    notes: "Open access. Also the large end of the Qwen size axis."
+
+  llama-3.2-3b-instruct:
+    hf_path: "meta-llama/Llama-3.2-3B-Instruct"
+    short_name: "llama3.2-3b-instruct"
+    params_b: 3.2
+    group: cross_architecture
+    requires_token: true
+    notes: "Gated (Meta). Accept license + set HF_TOKEN. Large end of Llama size axis."
+
+  gemma-2-2b-it:
+    hf_path: "google/gemma-2-2b-it"
+    short_name: "gemma2-2b-it"
+    params_b: 2.6
+    group: cross_architecture
+    requires_token: true
+    notes: "Gated (Google). Load with attn_implementation=eager (logit soft-capping)."
+
+  phi-3.5-mini-instruct:
+    hf_path: "microsoft/Phi-3.5-mini-instruct"
+    short_name: "phi3.5-mini-instruct"
+    params_b: 3.8
+    group: cross_architecture
+    requires_token: false
+    notes: "Open access. Largest in set (3.8B), still <4B."
+
+  smollm2-1.7b-instruct:
+    hf_path: "HuggingFaceTB/SmolLM2-1.7B-Instruct"
+    short_name: "smollm2-1.7b-instruct"
+    params_b: 1.7
+    group: cross_architecture
+    requires_token: false
+    notes: "Open access. Small end; watch for low FP16 baselines on Code/Multilingual."
+
+  # ---- size-axis additions (pair with the 3B/1.5B models above) ----
+  qwen2.5-1.5b-instruct:
+    hf_path: "Qwen/Qwen2.5-1.5B-Instruct"
+    short_name: "qwen2.5-1.5b-instruct"
+    params_b: 1.5
+    group: size_axis
+    requires_token: false
+    notes: "Open access. Small end of Qwen size axis (vs qwen2.5-3b-instruct)."
+
+  llama-3.2-1b-instruct:
+    hf_path: "meta-llama/Llama-3.2-1B-Instruct"
+    short_name: "llama3.2-1b-instruct"
+    params_b: 1.2
+    group: size_axis
+    requires_token: true
+    notes: "Gated (Meta). Small end of Llama size axis (vs llama-3.2-3b-instruct)."
+
+# Token note: only the Meta (Llama) and Google (Gemma) models are gated.
+# Qwen, Phi-3.5, and SmolLM2 load with no token, so the pipeline can be fully
+# validated (and most of the cross-architecture set run) without HF_TOKEN.

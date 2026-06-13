@@ -1,0 +1,1 @@
+{"model": "HuggingFaceTB/SmolLM2-1.7B-Instruct", "precision": "fp16", "n": 164, "passed": 56, "pass@1": 34.15}
